@@ -1,0 +1,23 @@
+# Build output
+/build/bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Wails auto-generated JS bindings (we use the injected globals instead)
+/frontend/wailsjs/
+
+# Frontend
+/frontend/node_modules/
+/frontend/dist/*
+!/frontend/dist/.gitkeep
+
+# Publish output (built binaries)
+/publish/*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

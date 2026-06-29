@@ -1,0 +1,24 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#app {
+  height: 100%;
+}
+
+/* Shared column grid used by both the tree header and every tree row so the
+   columns line up regardless of row indentation. */
+.dss-cols {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) 92px 160px 52px 88px 26px;
+  align-items: center;
+  column-gap: 8px;
+}

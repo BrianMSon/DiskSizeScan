@@ -1,0 +1,107 @@
+<script>
+  import { sortState, toggleSort } from './sort.js'
+
+  $: s = $sortState
+
+  function keySort(e, col) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      toggleSort(col)
+    }
+  }
+</script>
+
+<div class="thead dss-cols">
+  <span
+    class="h"
+    class:active={s.by === 'name'}
+    on:click={() => toggleSort('name')}
+    on:keydown={(e) => keySort(e, 'name')}
+    role="button"
+    tabindex="0"
+  >
+    이름
+    <span class="arr" class:on={s.by === 'name'}>{s.by === 'name' && s.asc ? '▲' : '▼'}</span>
+  </span>
+
+  <span
+    class="h right"
+    class:active={s.by === 'files'}
+    on:click={() => toggleSort('files')}
+    on:keydown={(e) => keySort(e, 'files')}
+    role="button"
+    tabindex="0"
+  >
+    항목
+    <span class="arr" class:on={s.by === 'files'}>{s.by === 'files' && s.asc ? '▲' : '▼'}</span>
+  </span>
+
+  <span class="h center muted">사용률</span>
+  <span></span>
+
+  <span
+    class="h right"
+    class:active={s.by === 'size'}
+    on:click={() => toggleSort('size')}
+    on:keydown={(e) => keySort(e, 'size')}
+    role="button"
+    tabindex="0"
+  >
+    크기
+    <span class="arr" class:on={s.by === 'size'}>{s.by === 'size' && s.asc ? '▲' : '▼'}</span>
+  </span>
+
+  <span></span>
+</div>
+
+<style>
+  .thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    height: 30px;
+    padding: 0 8px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--muted);
+    user-select: none;
+  }
+  .h {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px 4px;
+    white-space: nowrap;
+  }
+  .h.right {
+    justify-content: flex-end;
+  }
+  .h.center {
+    justify-content: center;
+  }
+  .h:hover:not(.muted) {
+    color: var(--fg);
+    background: var(--hover);
+  }
+  .h.active {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .muted {
+    cursor: default;
+  }
+  /* Always show a triangle on sortable columns: faint when inactive, solid
+     accent (pointing the sort direction) when active. */
+  .arr {
+    font-size: 9px;
+    line-height: 1;
+    opacity: 0.28;
+  }
+  .arr.on {
+    opacity: 1;
+    color: var(--accent);
+  }
+</style>
