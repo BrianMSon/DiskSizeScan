@@ -36,7 +36,17 @@
     <span class="arr" class:on={s.by === 'files'}>{s.by === 'files' && s.asc ? '▲' : '▼'}</span>
   </span>
 
-  <span class="h center muted">사용률</span>
+  <span
+    class="h center"
+    class:active={s.by === 'usage'}
+    on:click={() => toggleSort('usage')}
+    on:keydown={(e) => keySort(e, 'usage')}
+    role="button"
+    tabindex="0"
+  >
+    사용률
+    <span class="arr" class:on={s.by === 'usage'}>{s.by === 'usage' && s.asc ? '▲' : '▼'}</span>
+  </span>
   <span></span>
 
   <span
@@ -82,7 +92,7 @@
   .h.center {
     justify-content: center;
   }
-  .h:hover:not(.muted) {
+  .h:hover {
     color: var(--fg);
     background: var(--hover);
   }
@@ -90,15 +100,12 @@
     color: var(--accent);
     font-weight: 600;
   }
-  .muted {
-    cursor: default;
-  }
-  /* Always show a triangle on sortable columns: faint when inactive, solid
-     accent (pointing the sort direction) when active. */
+  /* Triangle only on the active column (accent, pointing the sort direction).
+     Inactive columns keep the reserved space so nothing shifts. */
   .arr {
     font-size: 9px;
     line-height: 1;
-    opacity: 0.28;
+    opacity: 0;
   }
   .arr.on {
     opacity: 1;

@@ -2,7 +2,7 @@
   import { onMount } from 'svelte'
   import { GetChildren, OpenPath } from '../wails.js'
   import { openContextMenu } from './contextmenu.js'
-  import { sortState } from './sort.js'
+  import { sortState, foldersOnly } from './sort.js'
   import { formatBytes, formatCount } from '../util.js'
 
   export let node
@@ -15,24 +15,24 @@
   let total = 0
   let truncated = false
   let loading = false
-  let appliedSort = null
+  let applied = null
 
   $: percent = denom > 0 ? Math.min((node.size / denom) * 100, 100) : 100
   $: hue = Math.max(0, 120 - percent * 1.2) // green (small) -> red (large)
-  $: sortKey = `${$sortState.by}|${$sortState.asc}`
+  $: viewKey = `${$sortState.by}|${$sortState.asc}|${$foldersOnly}`
 
   async function load() {
     loading = true
-    const res = await GetChildren(node.id, $sortState.by, $sortState.asc)
+    const res = await GetChildren(node.id, $sortState.by, $sortState.asc, $foldersOnly)
     children = res.items
     total = res.total
     truncated = res.truncated
-    appliedSort = sortKey
+    applied = viewKey
     loading = false
   }
 
-  // Re-fetch (re-sort) visible children whenever the sort order changes.
-  $: if (expanded && children !== null && !loading && sortKey !== appliedSort) load()
+  // Re-fetch visible children whenever the sort order or folders-only changes.
+  $: if (expanded && children !== null && !loading && viewKey !== applied) load()
 
   async function toggle() {
     if (!node.isDir || !node.hasChildren) return
@@ -59,6 +59,7 @@
 
 <div
   class="row dss-cols"
+  class:is-root={depth === 0}
   on:click={toggle}
   on:keydown={onKey}
   on:contextmenu={(e) => openContextMenu(e, node)}
@@ -103,6 +104,16 @@
   }
   .row:hover {
     background: var(--hover);
+  }
+  /* The top row is always the scan root — mark it distinctly. The left accent
+     bar uses inset box-shadow so it doesn't shift content out of column. */
+  .row.is-root {
+    background: var(--accent-soft);
+    box-shadow: inset 3px 0 0 var(--accent);
+    font-weight: 600;
+  }
+  .row.is-root:hover {
+    background: var(--accent-soft);
   }
   .name-cell {
     display: flex;

@@ -139,10 +139,11 @@ func (a *App) Scan(path string) (ScanResult, error) {
 }
 
 // GetChildren returns the children of the node with the given ID, sorted by
-// sortBy ("size" | "name" | "files") in the requested direction. Sorting runs
-// over the full child list before the childCap is applied, so the returned
-// page is correct for the chosen order even when truncated.
-func (a *App) GetChildren(id int, sortBy string, asc bool) ChildrenResult {
+// sortBy ("size" | "usage" | "name" | "files") in the requested direction. When
+// foldersOnly is set, files are excluded. Sorting/filtering run over the full
+// child list before the childCap is applied, so the returned page is correct
+// for the chosen order even when truncated.
+func (a *App) GetChildren(id int, sortBy string, asc bool, foldersOnly bool) ChildrenResult {
 	a.mu.Lock()
 	nodes := a.nodes
 	a.mu.Unlock()
@@ -152,9 +153,19 @@ func (a *App) GetChildren(id int, sortBy string, asc bool) ChildrenResult {
 
 	n := nodes[id]
 
-	// Sort a copy so concurrent calls never mutate the shared slice.
-	kids := make([]*scanner.Node, len(n.Children))
-	copy(kids, n.Children)
+	// Copy into a local slice (folders only when requested) so concurrent
+	// calls never mutate the shared slice.
+	var kids []*scanner.Node
+	if foldersOnly {
+		for _, c := range n.Children {
+			if c.IsDir {
+				kids = append(kids, c)
+			}
+		}
+	} else {
+		kids = make([]*scanner.Node, len(n.Children))
+		copy(kids, n.Children)
+	}
 	sortNodes(kids, sortBy, asc)
 
 	total := len(kids)
@@ -180,7 +191,7 @@ func sortNodes(nodes []*scanner.Node, sortBy string, asc bool) {
 		}
 	case "files":
 		less = func(a, b *scanner.Node) bool { return a.Files < b.Files }
-	default: // "size"
+	default: // "size" and "usage" (usage % is proportional to size)
 		less = func(a, b *scanner.Node) bool { return a.Size < b.Size }
 	}
 	sort.Slice(nodes, func(i, j int) bool {

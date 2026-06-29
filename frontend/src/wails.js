@@ -8,7 +8,8 @@ const rt = () => window.runtime
 export const ListDrives = () => app().ListDrives()
 export const ListDriveInfo = () => app().ListDriveInfo()
 export const Scan = (path) => app().Scan(path)
-export const GetChildren = (id, sortBy, asc) => app().GetChildren(id, sortBy, asc)
+export const GetChildren = (id, sortBy, asc, foldersOnly) =>
+  app().GetChildren(id, sortBy, asc, foldersOnly)
 export const Cancel = () => app().Cancel()
 export const OpenPath = (path) => app().OpenPath(path)
 

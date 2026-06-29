@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import { ListDriveInfo, Scan, Cancel, OpenPath, onProgress } from './wails.js'
   import { contextMenu, closeContextMenu } from './lib/contextmenu.js'
+  import { foldersOnly } from './lib/sort.js'
   import { formatBytes, formatCount } from './util.js'
   import TreeNode from './lib/TreeNode.svelte'
   import ColumnHeader from './lib/ColumnHeader.svelte'
@@ -103,6 +104,10 @@
       {:else}
         <button class="scan" on:click={startScan}>스캔</button>
       {/if}
+      <label class="opt" title="폴더만 표시 (파일 숨김)">
+        <input type="checkbox" bind:checked={$foldersOnly} />
+        폴더만
+      </label>
     </div>
     {#if drives.length}
       <div class="drives">
@@ -183,6 +188,7 @@
     --line: #ececef;
     --hover: #f5f7fa;
     --accent: #2f6fed;
+    --accent-soft: rgba(47, 111, 237, 0.09);
   }
   :global(body) {
     margin: 0;
@@ -244,6 +250,18 @@
   .cancel {
     background: #e5484d;
     color: #fff;
+  }
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .opt input {
+    cursor: pointer;
   }
   .drives {
     display: flex;
