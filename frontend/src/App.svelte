@@ -3,6 +3,8 @@
   import { ListDriveInfo, Scan, Cancel, OpenPath, onProgress } from './wails.js'
   import { contextMenu, closeContextMenu } from './lib/contextmenu.js'
   import { foldersOnly } from './lib/sort.js'
+  import { expandAll, collapseAll } from './lib/treecommand.js'
+  import { t } from './lib/i18n.js'
   import { formatBytes, formatCount } from './util.js'
   import TreeNode from './lib/TreeNode.svelte'
   import ColumnHeader from './lib/ColumnHeader.svelte'
@@ -79,6 +81,18 @@
     if (n && n.isDir) scanPath(n.path)
   }
 
+  function menuExpandAll() {
+    const n = menu.node
+    closeContextMenu()
+    if (n && n.isDir) expandAll(n)
+  }
+
+  function menuCollapseAll() {
+    const n = menu.node
+    closeContextMenu()
+    if (n && n.isDir) collapseAll(n)
+  }
+
   function menuOpen() {
     const n = menu.node
     closeContextMenu()
@@ -91,22 +105,22 @@
 <main>
   <header>
     <div class="controls">
-      <button class="home" on:click={goHome} disabled={scanning} title="홈으로 (드라이브 목록)">🏠</button>
+      <button class="home" on:click={goHome} disabled={scanning} title={$t('homeTip')}>🏠</button>
       <input
         type="text"
         bind:value={path}
         on:keydown={onKey}
-        placeholder="스캔할 경로, 예: C:\\ 또는 /"
+        placeholder={$t('pathPlaceholder')}
         disabled={scanning}
       />
       {#if scanning}
-        <button class="cancel" on:click={Cancel}>취소</button>
+        <button class="cancel" on:click={Cancel}>{$t('cancel')}</button>
       {:else}
-        <button class="scan" on:click={startScan}>스캔</button>
+        <button class="scan" on:click={startScan}>{$t('scan')}</button>
       {/if}
-      <label class="opt" title="폴더만 표시 (파일 숨김)">
+      <label class="opt" title={$t('foldersOnlyTip')}>
         <input type="checkbox" bind:checked={$foldersOnly} />
-        폴더만
+        {$t('foldersOnly')}
       </label>
     </div>
     {#if drives.length}
@@ -127,17 +141,20 @@
       <span class="err">⚠ {error}</span>
     {:else if totals}
       <span>
-        <strong>{formatBytes(totals.size)}</strong> · {formatCount(totals.files)}개 ·
-        {(totals.ms / 1000).toFixed(2)}s
+        <strong>{formatBytes(totals.size)}</strong>
+        {$t('summaryRest', { files: formatCount(totals.files), sec: (totals.ms / 1000).toFixed(2) })}
       </span>
       {#if drive && drive.total > 0}
         <span class="chip">
-          드라이브의 {((totals.size / drive.total) * 100).toFixed(1)}% ·
-          {formatBytes(drive.used)}/{formatBytes(drive.total)} 사용
+          {$t('driveChip', {
+            pct: ((totals.size / drive.total) * 100).toFixed(1),
+            used: formatBytes(drive.used),
+            total: formatBytes(drive.total),
+          })}
         </span>
       {/if}
     {:else}
-      <span class="hint">드라이브를 선택하거나 경로를 입력한 뒤 스캔하세요.</span>
+      <span class="hint">{$t('startHint')}</span>
     {/if}
   </section>
 
@@ -145,18 +162,18 @@
     {#if scanning}
       <div class="scanning">
         <div class="spinner-lg" />
-        <div class="scan-title">스캔 중…</div>
+        <div class="scan-title">{$t('scanning')}</div>
         <div class="scan-stats">
           <div class="stat">
             <div class="val">{formatCount(progress.files)}</div>
-            <div class="lbl">항목</div>
+            <div class="lbl">{$t('items')}</div>
           </div>
           <div class="stat">
             <div class="val">{formatBytes(progress.bytes)}</div>
-            <div class="lbl">크기</div>
+            <div class="lbl">{$t('size')}</div>
           </div>
         </div>
-        <div class="scan-path" title={progress.path}>{progress.path || '준비 중…'}</div>
+        <div class="scan-path" title={progress.path}>{progress.path || $t('preparing')}</div>
       </div>
     {:else if root}
       <ColumnHeader />
@@ -173,9 +190,11 @@
   <div class="menu-overlay" on:click={closeContextMenu} on:keydown={closeContextMenu} on:contextmenu|preventDefault={closeContextMenu} role="presentation">
     <div class="context-menu" style="left:{menu.x}px; top:{menu.y}px" role="menu">
       {#if menu.node?.isDir}
-        <button on:click={menuScan}>📁 이 폴더 스캔</button>
+        <button on:click={menuScan}>{$t('ctxScan')}</button>
+        <button on:click={menuExpandAll}>{$t('ctxExpandAll')}</button>
+        <button on:click={menuCollapseAll}>{$t('ctxCollapseAll')}</button>
       {/if}
-      <button on:click={menuOpen}>↗ 탐색기에서 열기</button>
+      <button on:click={menuOpen}>{$t('ctxOpen')}</button>
     </div>
   </div>
 {/if}

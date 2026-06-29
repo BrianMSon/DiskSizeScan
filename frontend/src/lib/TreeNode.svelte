@@ -3,6 +3,8 @@
   import { GetChildren, OpenPath } from '../wails.js'
   import { openContextMenu } from './contextmenu.js'
   import { sortState, foldersOnly } from './sort.js'
+  import { treeCommand, reserveRows, isDescendant } from './treecommand.js'
+  import { t } from './i18n.js'
   import { formatBytes, formatCount } from '../util.js'
 
   export let node
@@ -16,6 +18,7 @@
   let truncated = false
   let loading = false
   let applied = null
+  let lastCmdNonce = 0
 
   $: percent = denom > 0 ? Math.min((node.size / denom) * 100, 100) : 100
   $: hue = Math.max(0, 120 - percent * 1.2) // green (small) -> red (large)
@@ -33,6 +36,33 @@
 
   // Re-fetch visible children whenever the sort order or folders-only changes.
   $: if (expanded && children !== null && !loading && viewKey !== applied) load()
+
+  function commandApplies(cmd) {
+    if (cmd.type === 'expandAll') {
+      return node.path === cmd.path || isDescendant(node.path, cmd.path)
+    }
+    return isDescendant(node.path, cmd.path) // collapseAll: descendants only
+  }
+
+  async function runCommand(cmd) {
+    if (cmd.type === 'collapseAll') {
+      expanded = false
+      return
+    }
+    // expandAll — load, then expand if the row budget allows. Cascades to
+    // children as they mount and apply the same in-flight command.
+    if (!node.isDir || !node.hasChildren) return
+    if (children === null) await load()
+    if (!children.length) return
+    if (!reserveRows(children.length)) return // safety cap reached
+    expanded = true
+  }
+
+  // Apply an expand/collapse-all command targeting this node's subtree (once).
+  $: if ($treeCommand && $treeCommand.nonce !== lastCmdNonce && commandApplies($treeCommand)) {
+    lastCmdNonce = $treeCommand.nonce
+    runCommand($treeCommand)
+  }
 
   async function toggle() {
     if (!node.isDir || !node.hasChildren) return
@@ -78,7 +108,7 @@
   <span class="bar"><span class="fill" style="width:{percent}%; background:hsl({hue},65%,50%)"></span></span>
   <span class="pct">{percent.toFixed(1)}%</span>
   <span class="size">{formatBytes(node.size)}</span>
-  <button class="open" title="탐색기에서 열기" on:click={open}>↗</button>
+  <button class="open" title={$t('openTip')} on:click={open}>↗</button>
 </div>
 
 {#if expanded && children}
@@ -87,11 +117,11 @@
   {/each}
   {#if truncated}
     <div class="more" style="padding-left: {(depth + 1) * 16 + 54}px">
-      … {formatCount(total - children.length)}개 더 있음 (상위 {formatCount(children.length)}개만 표시)
+      {$t('moreItems', { hidden: formatCount(total - children.length), shown: formatCount(children.length) })}
     </div>
   {/if}
 {:else if loading}
-  <div class="more" style="padding-left: {(depth + 1) * 16 + 54}px">불러오는 중…</div>
+  <div class="more" style="padding-left: {(depth + 1) * 16 + 54}px">{$t('loading')}</div>
 {/if}
 
 <style>

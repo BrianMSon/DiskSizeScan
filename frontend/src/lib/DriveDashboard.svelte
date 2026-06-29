@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte'
   import { formatBytes } from '../util.js'
+  import { t, locale } from './i18n.js'
 
   export let drives = []
 
@@ -10,7 +11,13 @@
 </script>
 
 <div class="dash">
-  <h2>드라이브</h2>
+  <div class="dash-head">
+    <h2>{$t('drives')}</h2>
+    <select class="lang" bind:value={$locale} title="Language">
+      <option value="ko">한국어</option>
+      <option value="en">English</option>
+    </select>
+  </div>
   <div class="cards">
     {#each drives as d}
       <button class="card" on:click={() => dispatch('scan', d.path)}>
@@ -23,15 +30,19 @@
         </div>
         <div class="sub">
           {#if d.total > 0}
-            {formatBytes(d.used)} / {formatBytes(d.total)} 사용 · {formatBytes(d.free)} 여유
+            {$t('driveSub', {
+              used: formatBytes(d.used),
+              total: formatBytes(d.total),
+              free: formatBytes(d.free),
+            })}
           {:else}
-            용량 정보 없음
+            {$t('driveNoInfo')}
           {/if}
         </div>
       </button>
     {/each}
   </div>
-  <p class="hint">드라이브를 클릭하면 스캔을 시작합니다.</p>
+  <p class="hint">{$t('driveHint')}</p>
 </div>
 
 <style>
@@ -40,11 +51,26 @@
     max-width: 720px;
     margin: 0 auto;
   }
+  .dash-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 4px 0 14px;
+  }
   h2 {
     font-size: 15px;
     font-weight: 600;
-    margin: 4px 0 14px;
+    margin: 0;
     color: var(--fg);
+  }
+  .lang {
+    border: 1px solid #d6d9df;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 13px;
+    background: #fff;
+    color: var(--fg);
+    cursor: pointer;
   }
   .cards {
     display: grid;

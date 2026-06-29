@@ -1,5 +1,6 @@
 <script>
   import { sortState, toggleSort } from './sort.js'
+  import { t } from './i18n.js'
 
   $: s = $sortState
 
@@ -20,7 +21,7 @@
     role="button"
     tabindex="0"
   >
-    이름
+    {$t('name')}
     <span class="arr" class:on={s.by === 'name'}>{s.by === 'name' && s.asc ? '▲' : '▼'}</span>
   </span>
 
@@ -32,7 +33,7 @@
     role="button"
     tabindex="0"
   >
-    항목
+    {$t('items')}
     <span class="arr" class:on={s.by === 'files'}>{s.by === 'files' && s.asc ? '▲' : '▼'}</span>
   </span>
 
@@ -44,7 +45,7 @@
     role="button"
     tabindex="0"
   >
-    사용률
+    {$t('usage')}
     <span class="arr" class:on={s.by === 'usage'}>{s.by === 'usage' && s.asc ? '▲' : '▼'}</span>
   </span>
   <span></span>
@@ -57,7 +58,7 @@
     role="button"
     tabindex="0"
   >
-    크기
+    {$t('size')}
     <span class="arr" class:on={s.by === 'size'}>{s.by === 'size' && s.asc ? '▲' : '▼'}</span>
   </span>
 
