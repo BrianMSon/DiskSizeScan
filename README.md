@@ -69,6 +69,22 @@ wails build
 If `go mod tidy` reports the pinned Wails version is unavailable, refresh it
 with `go get github.com/wailsapp/wails/v2@latest && go mod tidy`.
 
+On Windows you can also run `_build_win.bat` to produce a clean release binary
+in `publish/`.
+
+## CI / Releases
+
+`.github/workflows/build.yml` builds the app for **Windows, Linux and macOS** on
+every push / PR to `main`. Pushing a tag like `v1.0.0` additionally builds all
+three platforms and publishes a **GitHub Release** with the binaries attached:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+You can also trigger a build manually from the Actions tab (workflow_dispatch).
+
 ## Usage
 
 1. On launch you get a **drive dashboard** — click a drive to scan it, or type
