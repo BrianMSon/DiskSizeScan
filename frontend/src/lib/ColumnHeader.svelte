@@ -52,6 +52,18 @@
 
   <span
     class="h right"
+    class:active={s.by === 'date'}
+    on:click={() => toggleSort('date')}
+    on:keydown={(e) => keySort(e, 'date')}
+    role="button"
+    tabindex="0"
+  >
+    {$t('modified')}
+    <span class="arr" class:on={s.by === 'date'}>{s.by === 'date' && s.asc ? '▲' : '▼'}</span>
+  </span>
+
+  <span
+    class="h right"
     class:active={s.by === 'size'}
     on:click={() => toggleSort('size')}
     on:keydown={(e) => keySort(e, 'size')}

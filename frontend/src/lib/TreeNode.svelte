@@ -5,7 +5,7 @@
   import { sortState, foldersOnly } from './sort.js'
   import { treeCommand, reserveRows, isDescendant } from './treecommand.js'
   import { t } from './i18n.js'
-  import { formatBytes, formatCount } from '../util.js'
+  import { formatBytes, formatCount, formatDate } from '../util.js'
 
   export let node
   export let denom = 0 // reference size for the bar (the drive's total capacity)
@@ -107,6 +107,7 @@
   <span class="meta">{node.isDir ? formatCount(node.files) : ''}</span>
   <span class="bar"><span class="fill" style="width:{percent}%; background:hsl({hue},65%,50%)"></span></span>
   <span class="pct">{percent.toFixed(1)}%</span>
+  <span class="date">{formatDate(node.modTime)}</span>
   <span class="size">{formatBytes(node.size)}</span>
   <button class="open" title={$t('openTip')} on:click={open}>📂</button>
 </div>
@@ -187,6 +188,12 @@
   .pct {
     text-align: right;
     color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .date {
+    text-align: right;
+    color: var(--muted);
+    font-size: 11px;
     font-variant-numeric: tabular-nums;
   }
   .size {

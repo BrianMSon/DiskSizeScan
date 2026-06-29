@@ -25,6 +25,7 @@ type Node struct {
 	Size     int64   // total bytes in this subtree
 	IsDir    bool    //
 	Files    int64   // total file count in this subtree
+	ModTime  int64   // last-modified time of this entry (unix seconds)
 	Children []*Node //
 	parent   *Node
 }
@@ -75,7 +76,7 @@ func (s *Scanner) Scan(ctx context.Context, root string) (*Node, error) {
 		return nil, err
 	}
 
-	node := &Node{Name: root, IsDir: info.IsDir()}
+	node := &Node{Name: root, IsDir: info.IsDir(), ModTime: info.ModTime().Unix()}
 	if node.IsDir {
 		s.scanDir(node, root)
 	} else {
@@ -112,6 +113,9 @@ func (s *Scanner) scanDir(node *Node, path string) {
 
 		if e.IsDir() {
 			child := &Node{Name: e.Name(), IsDir: true, parent: node}
+			if di, err := e.Info(); err == nil {
+				child.ModTime = di.ModTime().Unix()
+			}
 			node.Children = append(node.Children, child)
 			childPath := filepath.Join(path, e.Name())
 
@@ -135,7 +139,7 @@ func (s *Scanner) scanDir(node *Node, path string) {
 		}
 		size := info.Size()
 		node.Children = append(node.Children, &Node{
-			Name: e.Name(), Size: size, Files: 1, parent: node,
+			Name: e.Name(), Size: size, Files: 1, ModTime: info.ModTime().Unix(), parent: node,
 		})
 		node.Size += size
 		node.Files++

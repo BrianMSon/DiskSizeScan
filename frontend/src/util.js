@@ -10,3 +10,10 @@ export function formatBytes(bytes) {
 export function formatCount(n) {
   return n.toLocaleString()
 }
+
+export function formatDate(unixSec) {
+  if (!unixSec) return ''
+  const d = new Date(unixSec * 1000)
+  const p = (v) => String(v).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}

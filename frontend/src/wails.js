@@ -15,3 +15,4 @@ export const Cancel = () => app().Cancel()
 export const OpenPath = (path) => app().OpenPath(path)
 
 export const onProgress = (cb) => rt().EventsOn('scan:progress', cb)
+export const ClipboardSetText = (text) => rt().ClipboardSetText(text)

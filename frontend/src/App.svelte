@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte'
-  import { ListDriveInfo, Scan, Search, Cancel, OpenPath, onProgress } from './wails.js'
+  import { ListDriveInfo, Scan, Search, Cancel, OpenPath, ClipboardSetText, onProgress } from './wails.js'
   import { contextMenu, closeContextMenu } from './lib/contextmenu.js'
   import { foldersOnly, sortState } from './lib/sort.js'
   import { expandAll, collapseAll } from './lib/treecommand.js'
@@ -123,6 +123,12 @@
     if (n && n.isDir) collapseAll(n)
   }
 
+  function menuCopyPath() {
+    const n = menu.node
+    closeContextMenu()
+    if (n) ClipboardSetText(n.path)
+  }
+
   function menuOpen() {
     const n = menu.node
     closeContextMenu()
@@ -136,6 +142,9 @@
   <header>
     <div class="controls">
       <button class="home" on:click={goHome} disabled={scanning} title={$t('homeTip')}>🏠</button>
+      {#if root}
+        <button class="home" on:click={startScan} disabled={scanning} title={$t('rescanTip')}>🔄</button>
+      {/if}
       <input
         type="text"
         bind:value={path}
@@ -246,6 +255,7 @@
         <button on:click={menuExpandAll}>{$t('ctxExpandAll')}</button>
         <button on:click={menuCollapseAll}>{$t('ctxCollapseAll')}</button>
       {/if}
+      <button on:click={menuCopyPath}>{$t('ctxCopy')}</button>
       <button on:click={menuOpen}>{$t('ctxOpen')}</button>
     </div>
   </div>

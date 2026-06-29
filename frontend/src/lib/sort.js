@@ -7,7 +7,7 @@ export const sortState = writable({ by: 'size', asc: false })
 export const foldersOnly = writable(false)
 
 // Sensible initial direction per column when first selected.
-const defaultAsc = { name: true, files: false, size: false, usage: false }
+const defaultAsc = { name: true, files: false, size: false, usage: false, date: false }
 
 export function toggleSort(col) {
   sortState.update((s) =>

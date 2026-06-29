@@ -2,7 +2,7 @@
   import { OpenPath } from '../wails.js'
   import { openContextMenu } from './contextmenu.js'
   import { t } from './i18n.js'
-  import { formatBytes, formatCount } from '../util.js'
+  import { formatBytes, formatCount, formatDate } from '../util.js'
 
   export let items = []
   export let total = 0
@@ -32,6 +32,7 @@
       <span class="meta">{node.isDir ? formatCount(node.files) : ''}</span>
       <span class="bar"><span class="fill" style="width:{usedPct(node.size)}%; background:hsl({hue(usedPct(node.size))},65%,50%)"></span></span>
       <span class="pct">{usedPct(node.size).toFixed(1)}%</span>
+      <span class="date">{formatDate(node.modTime)}</span>
       <span class="size">{formatBytes(node.size)}</span>
       <button class="open" title={$t('openTip')} on:click={(e) => open(e, node)}>📂</button>
     </div>
@@ -98,6 +99,12 @@
   .pct {
     text-align: right;
     color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .date {
+    text-align: right;
+    color: var(--muted);
+    font-size: 11px;
     font-variant-numeric: tabular-nums;
   }
   .size {

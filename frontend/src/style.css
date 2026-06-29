@@ -18,7 +18,7 @@ body {
    columns line up regardless of row indentation. */
 .dss-cols {
   display: grid;
-  grid-template-columns: minmax(140px, 1fr) 92px 160px 52px 88px 26px;
+  grid-template-columns: minmax(140px, 1fr) 92px 160px 52px 96px 88px 26px;
   align-items: center;
   column-gap: 8px;
 }

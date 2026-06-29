@@ -32,6 +32,7 @@ type NodeDTO struct {
 	Size        int64  `json:"size"`
 	IsDir       bool   `json:"isDir"`
 	Files       int64  `json:"files"`
+	ModTime     int64  `json:"modTime"`
 	HasChildren bool   `json:"hasChildren"`
 }
 
@@ -195,6 +196,8 @@ func sortNodes(nodes []*scanner.Node, sortBy string, asc bool) {
 		}
 	case "files":
 		less = func(a, b *scanner.Node) bool { return a.Files < b.Files }
+	case "date":
+		less = func(a, b *scanner.Node) bool { return a.ModTime < b.ModTime }
 	default: // "size" and "usage" (usage % is proportional to size)
 		less = func(a, b *scanner.Node) bool { return a.Size < b.Size }
 	}
@@ -317,6 +320,7 @@ func toDTO(n *scanner.Node) NodeDTO {
 		Size:        n.Size,
 		IsDir:       n.IsDir,
 		Files:       n.Files,
+		ModTime:     n.ModTime,
 		HasChildren: len(n.Children) > 0,
 	}
 }
