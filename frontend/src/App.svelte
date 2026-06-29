@@ -1,14 +1,15 @@
 <script>
   import { onMount } from 'svelte'
-  import { ListDriveInfo, Scan, Cancel, OpenPath, onProgress } from './wails.js'
+  import { ListDriveInfo, Scan, Search, Cancel, OpenPath, onProgress } from './wails.js'
   import { contextMenu, closeContextMenu } from './lib/contextmenu.js'
-  import { foldersOnly } from './lib/sort.js'
+  import { foldersOnly, sortState } from './lib/sort.js'
   import { expandAll, collapseAll } from './lib/treecommand.js'
   import { t } from './lib/i18n.js'
   import { formatBytes, formatCount } from './util.js'
   import TreeNode from './lib/TreeNode.svelte'
   import ColumnHeader from './lib/ColumnHeader.svelte'
   import DriveDashboard from './lib/DriveDashboard.svelte'
+  import SearchResults from './lib/SearchResults.svelte'
 
   let driveInfos = []
   let path = ''
@@ -19,10 +20,35 @@
   let error = ''
   let progress = { files: 0, bytes: 0, path: '' }
 
+  let query = ''
+  let searchResult = null
+  let searchTimer
+
   $: drives = driveInfos.map((d) => d.path)
   // Bars are drawn relative to the whole drive's capacity (fallback: scan root).
   $: denom = drive && drive.total > 0 ? drive.total : root ? root.size : 0
   $: menu = $contextMenu
+
+  // Debounced search whenever the query or sort changes (and a scan exists).
+  $: searchKey = `${query.trim()}|${$sortState.by}|${$sortState.asc}`
+  $: {
+    searchKey
+    clearTimeout(searchTimer)
+    searchTimer = setTimeout(runSearch, 250)
+  }
+
+  async function runSearch() {
+    const q = query.trim()
+    if (!root || !q) {
+      searchResult = null
+      return
+    }
+    try {
+      searchResult = await Search(q, $sortState.by, $sortState.asc)
+    } catch (e) {
+      searchResult = null
+    }
+  }
 
   onMount(async () => {
     try {
@@ -40,6 +66,8 @@
     root = null
     totals = null
     drive = null
+    query = ''
+    searchResult = null
     progress = { files: 0, bytes: 0, path: '' }
     scanning = true
     try {
@@ -64,6 +92,8 @@
     totals = null
     drive = null
     error = ''
+    query = ''
+    searchResult = null
     try {
       driveInfos = await ListDriveInfo() // refresh capacities
     } catch (e) {
@@ -158,6 +188,19 @@
     {/if}
   </section>
 
+  {#if root && !scanning}
+    <section class="searchbar">
+      <span class="ico">🔍</span>
+      <input bind:value={query} placeholder={$t('searchPlaceholder')} />
+      {#if query}
+        <button class="clear" on:click={() => (query = '')} title={$t('clear')}>✕</button>
+      {/if}
+      {#if searchResult}
+        <span class="scount">{$t('searchCount', { n: formatCount(searchResult.total) })}</span>
+      {/if}
+    </section>
+  {/if}
+
   <section class="body">
     {#if scanning}
       <div class="scanning">
@@ -177,9 +220,18 @@
       </div>
     {:else if root}
       <ColumnHeader />
-      {#key root.id}
-        <TreeNode node={root} {denom} depth={0} autoExpand={true} />
-      {/key}
+      {#if searchResult}
+        <SearchResults
+          items={searchResult.items}
+          total={searchResult.total}
+          truncated={searchResult.truncated}
+          {denom}
+        />
+      {:else}
+        {#key root.id}
+          <TreeNode node={root} {denom} depth={0} autoExpand={true} />
+        {/key}
+      {/if}
     {:else}
       <DriveDashboard drives={driveInfos} on:scan={(e) => scanPath(e.detail)} />
     {/if}
@@ -208,6 +260,19 @@
     --hover: #f5f7fa;
     --accent: #2f6fed;
     --accent-soft: rgba(47, 111, 237, 0.09);
+    --surface: #ffffff;
+    --border-strong: #d6d9df;
+  }
+  :global(html.dark) {
+    --bg: #1b1f27;
+    --fg: #e7e9ee;
+    --muted: #9aa1ac;
+    --line: #2b313b;
+    --hover: #232a34;
+    --accent: #4d8bff;
+    --accent-soft: rgba(77, 139, 255, 0.16);
+    --surface: #232a34;
+    --border-strong: #3a4250;
   }
   :global(body) {
     margin: 0;
@@ -233,9 +298,11 @@
     flex: 1;
     padding: 8px 10px;
     font-size: 14px;
-    border: 1px solid #d6d9df;
+    border: 1px solid var(--border-strong);
     border-radius: 6px;
     outline: none;
+    background: var(--surface);
+    color: var(--fg);
   }
   input:focus {
     border-color: var(--accent);
@@ -280,6 +347,13 @@
     cursor: pointer;
   }
   .opt input {
+    flex: none;
+    width: auto;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: none;
+    accent-color: var(--accent);
     cursor: pointer;
   }
   .drives {
@@ -328,6 +402,35 @@
   .body {
     flex: 1;
     overflow: auto;
+  }
+  .searchbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+    flex: none;
+  }
+  .searchbar .ico {
+    opacity: 0.7;
+  }
+  .searchbar input {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  .searchbar .clear {
+    background: var(--hover);
+    color: var(--muted);
+    padding: 4px 9px;
+    font-size: 12px;
+  }
+  .searchbar .clear:hover {
+    color: var(--fg);
+  }
+  .searchbar .scount {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
   }
 
   /* Scanning panel — fixed, centered layout so nothing reflows as numbers
@@ -395,7 +498,7 @@
   .context-menu {
     position: absolute;
     min-width: 170px;
-    background: #fff;
+    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 8px;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);

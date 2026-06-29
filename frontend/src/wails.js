@@ -10,6 +10,7 @@ export const ListDriveInfo = () => app().ListDriveInfo()
 export const Scan = (path) => app().Scan(path)
 export const GetChildren = (id, sortBy, asc, foldersOnly) =>
   app().GetChildren(id, sortBy, asc, foldersOnly)
+export const Search = (query, sortBy, asc) => app().Search(query, sortBy, asc)
 export const Cancel = () => app().Cancel()
 export const OpenPath = (path) => app().OpenPath(path)
 

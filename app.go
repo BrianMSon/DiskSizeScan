@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
@@ -19,6 +20,9 @@ import (
 // with hundreds of thousands of entries can't stall the UI. The remainder is
 // reported via Total/Truncated.
 const childCap = 500
+
+// searchCap bounds how many search matches are returned at once.
+const searchCap = 1000
 
 // NodeDTO is the serializable view of a tree node sent to the frontend.
 type NodeDTO struct {
@@ -200,6 +204,49 @@ func sortNodes(nodes []*scanner.Node, sortBy string, asc bool) {
 		}
 		return less(nodes[j], nodes[i])
 	})
+}
+
+// Search finds nodes whose name matches query across the whole scanned tree.
+// A query containing * or ? is treated as a glob (e.g. "*.iso"), otherwise it's
+// a case-insensitive substring match. Results are sorted like the tree and
+// capped at searchCap.
+func (a *App) Search(query string, sortBy string, asc bool) ChildrenResult {
+	a.mu.Lock()
+	nodes := a.nodes
+	a.mu.Unlock()
+
+	q := strings.ToLower(strings.TrimSpace(query))
+	if q == "" || len(nodes) == 0 {
+		return ChildrenResult{}
+	}
+	glob := strings.ContainsAny(q, "*?")
+
+	var matches []*scanner.Node
+	for i := 1; i < len(nodes); i++ { // skip root (index 0)
+		name := strings.ToLower(nodes[i].Name)
+		ok := false
+		if glob {
+			ok, _ = filepath.Match(q, name)
+		} else {
+			ok = strings.Contains(name, q)
+		}
+		if ok {
+			matches = append(matches, nodes[i])
+		}
+	}
+	sortNodes(matches, sortBy, asc)
+
+	total := len(matches)
+	limit := total
+	truncated := false
+	if limit > searchCap {
+		limit, truncated = searchCap, true
+	}
+	items := make([]NodeDTO, 0, limit)
+	for i := 0; i < limit; i++ {
+		items = append(items, toDTO(matches[i]))
+	}
+	return ChildrenResult{Items: items, Total: total, Truncated: truncated}
 }
 
 // Cancel stops the in-progress scan, if any.

@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte'
   import { formatBytes } from '../util.js'
   import { t, locale } from './i18n.js'
+  import { theme, toggleTheme } from './theme.js'
 
   export let drives = []
 
@@ -13,10 +14,15 @@
 <div class="dash">
   <div class="dash-head">
     <h2>{$t('drives')}</h2>
-    <select class="lang" bind:value={$locale} title="Language">
-      <option value="ko">한국어</option>
-      <option value="en">English</option>
-    </select>
+    <div class="settings">
+      <button class="theme" on:click={toggleTheme} title={$theme === 'dark' ? $t('darkOff') : $t('darkOn')}>
+        {$theme === 'dark' ? '☀️' : '🌙'}
+      </button>
+      <select class="lang" bind:value={$locale} title="Language">
+        <option value="ko">한국어</option>
+        <option value="en">English</option>
+      </select>
+    </div>
   </div>
   <div class="cards">
     {#each drives as d}
@@ -63,12 +69,29 @@
     margin: 0;
     color: var(--fg);
   }
+  .settings {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .theme {
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: 15px;
+    line-height: 1;
+    background: var(--surface);
+    cursor: pointer;
+  }
+  .theme:hover {
+    background: var(--hover);
+  }
   .lang {
-    border: 1px solid #d6d9df;
+    border: 1px solid var(--border-strong);
     border-radius: 6px;
     padding: 6px 8px;
     font-size: 13px;
-    background: #fff;
+    background: var(--surface);
     color: var(--fg);
     cursor: pointer;
   }
@@ -82,7 +105,8 @@
     border: 1px solid var(--line);
     border-radius: 10px;
     padding: 14px;
-    background: #fff;
+    background: var(--surface);
+    color: var(--fg);
     cursor: pointer;
     transition: border-color 0.12s, box-shadow 0.12s;
   }

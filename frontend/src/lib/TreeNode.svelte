@@ -108,7 +108,7 @@
   <span class="bar"><span class="fill" style="width:{percent}%; background:hsl({hue},65%,50%)"></span></span>
   <span class="pct">{percent.toFixed(1)}%</span>
   <span class="size">{formatBytes(node.size)}</span>
-  <button class="open" title={$t('openTip')} on:click={open}>↗</button>
+  <button class="open" title={$t('openTip')} on:click={open}>📂</button>
 </div>
 
 {#if expanded && children}
