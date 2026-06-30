@@ -84,6 +84,35 @@ git push origin v1.0.0
 ```
 
 You can also trigger a build manually from the Actions tab (workflow_dispatch).
+The Linux build is additionally **smoke-tested headlessly** (Xvfb + dbus) to
+confirm the binary actually launches, not just compiles.
+
+## Running a release download
+
+**Windows** — unzip and run `DiskSizeScan.exe`. SmartScreen may warn about an
+unknown publisher (the binary is unsigned); choose *More info → Run anyway*.
+
+**Linux** — the binary is dynamically linked against GTK 3 and WebKit2GTK 4.0.
+Install those once, then mark it executable:
+
+```bash
+# Debian/Ubuntu
+sudo apt install libgtk-3-0 libwebkit2gtk-4.0-37
+chmod +x DiskSizeScan
+./DiskSizeScan
+```
+
+The release is built against WebKit2GTK **4.0**; on distros that ship only 4.1
+(e.g. Ubuntu 24.04+) install the 4.0 runtime or build from source.
+
+**macOS** — the `.app` is unsigned/unnotarized, so Gatekeeper blocks it on first
+launch. Either right-click the app → **Open** → *Open*, or clear the quarantine
+flag from a terminal:
+
+```bash
+xattr -cr DiskSizeScan.app
+open DiskSizeScan.app
+```
 
 ## Usage
 
